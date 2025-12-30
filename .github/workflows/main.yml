@@ -5,29 +5,31 @@ on: workflow_dispatch
 jobs:
   build:
     runs-on: windows-latest
-    timeout-minutes: 360 # المدة القصوى للجلسة 6 ساعات
+    timeout-minutes: 360
 
     steps:
     - name: Download Chrome Remote Desktop
       run: |
-        Write-Host "Downloading Installer..."
         Invoke-WebRequest https://dl.google.com/edgedl/chrome-remote-desktop/chromeremotedesktophost.msi -OutFile crd.msi
 
     - name: Install Chrome Remote Desktop
       run: |
-        Write-Host "Installing..."
         Start-Process msiexec.exe -ArgumentList '/i crd.msi /qn' -Wait
 
     - name: Activate RDP Session
+      env:
+        # هنا التغيير: نمرر الكود كمتغير بيئي لمنع أخطاء الكتابة
+        GOOGLE_COMMAND: ${{ secrets.CRD_CODE }}
       shell: powershell
       run: |
-        # هذا الأمر يقوم بتشغيل كود جوجل وإضافة الرمز السري
-        $secretCommand = "${{ secrets.CRD_CODE }}"
-        # إضافة الرمز السري 123456 للأمر
-        $finalCommand = $secretCommand + ' -pin=123456'
+        # استدعاء الكود من المتغير
+        $command = $env:GOOGLE_COMMAND
+        # إضافة البن كود (الرقم السري) للأمر
+        $finalCommand = "$command -pin=123456"
+        # تشغيل الأمر
         Invoke-Expression $finalCommand
 
-    - name: Keep Alive (Don't Close)
+    - name: Keep Alive
       run: |
         Write-Host "==================================================="
         Write-Host "Success! Go to: https://remotedesktop.google.com/access"
