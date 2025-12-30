@@ -1,0 +1,38 @@
+name: Browser RDP (Chrome Remote Desktop)
+
+on: workflow_dispatch
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 360 # المدة القصوى للجلسة 6 ساعات
+
+    steps:
+    - name: Download Chrome Remote Desktop
+      run: |
+        Write-Host "Downloading Installer..."
+        Invoke-WebRequest https://dl.google.com/edgedl/chrome-remote-desktop/chromeremotedesktophost.msi -OutFile crd.msi
+
+    - name: Install Chrome Remote Desktop
+      run: |
+        Write-Host "Installing..."
+        Start-Process msiexec.exe -ArgumentList '/i crd.msi /qn' -Wait
+
+    - name: Activate RDP Session
+      shell: powershell
+      run: |
+        # هذا الأمر يقوم بتشغيل كود جوجل وإضافة الرمز السري
+        $secretCommand = "${{ secrets.CRD_CODE }}"
+        # إضافة الرمز السري 123456 للأمر
+        $finalCommand = $secretCommand + ' -pin=123456'
+        Invoke-Expression $finalCommand
+
+    - name: Keep Alive (Don't Close)
+      run: |
+        Write-Host "==================================================="
+        Write-Host "Success! Go to: https://remotedesktop.google.com/access"
+        Write-Host "PIN Code: 123456"
+        Write-Host "==================================================="
+        while ($true) {
+          Start-Sleep -Seconds 60
+        }
