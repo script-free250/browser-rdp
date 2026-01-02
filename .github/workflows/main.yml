@@ -1,4 +1,4 @@
-name: Browser RDP (Chrome Remote Desktop)
+name: Browser RDP (Fixed)
 
 on: workflow_dispatch
 
@@ -18,15 +18,19 @@ jobs:
 
     - name: Activate RDP Session
       env:
-        # هنا التغيير: نمرر الكود كمتغير بيئي لمنع أخطاء الكتابة
-        GOOGLE_COMMAND: ${{ secrets.CRD_CODE }}
+        # هذه الخطوة هي التي تحل المشكلة
+        # نقوم بتخزين الكود السري في متغير بيئي لكي لا يفسده الباورشيل
+        GOOGLE_CODE: ${{ secrets.CRD_CODE }}
       shell: powershell
       run: |
-        # استدعاء الكود من المتغير
-        $command = $env:GOOGLE_COMMAND
-        # إضافة البن كود (الرقم السري) للأمر
-        $finalCommand = "$command -pin=123456"
-        # تشغيل الأمر
+        # استدعاء الكود من المتغير البيئي بأمان
+        $commandString = $env:GOOGLE_CODE
+        
+        # إضافة الرقم السري (PIN) للأمر
+        # نستخدم مسافة قبل الشرطة للتأكد من صحة الأمر
+        $finalCommand = "$commandString -pin=123456"
+        
+        # تنفيذ الأمر النهائي
         Invoke-Expression $finalCommand
 
     - name: Keep Alive
